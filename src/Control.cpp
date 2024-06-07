@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
       [&moveit_visual_tools, jmg = move_group_interface.getRobotModel()->getJointModelGroup("manipulator")](
           auto const trajectory) { moveit_visual_tools.publishTrajectoryLine(trajectory, jmg); };
 
-  // Set a target Pose with updated values
+  // Set a target Pose with updated values 四元数方法 rotation around a unit axis, x y z w
   auto const target_pose = [] {
     geometry_msgs::msg::Pose msg;
     msg.orientation.y = 0.8;
