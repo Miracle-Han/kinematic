@@ -43,26 +43,32 @@ public:
 
     // Callback function
     void topic_callback(const sensor_msgs::msg::JointState::SharedPtr msg) {
-        std::vector<double> joint_angles;
+        std::map<std::string, double> joint_angles;
+
+        // 读取关节角度并存储到 map 中
         for (size_t i = 0; i < msg->name.size(); ++i) {
-            if (msg->name[i] == "joint_1" || msg->name[i] == "joint_2" || msg->name[i] == "joint_3" || 
-                msg->name[i] == "joint_4" || msg->name[i] == "joint_5" || msg->name[i] == "joint_6" || 
-                msg->name[i] == "joint_7") {
-                joint_angles.push_back(msg->position[i]);
-                RCLCPP_INFO(this->get_logger(), "Parsed angle for %s: %f", msg->name[i].c_str(), msg->position[i]);
+            if (msg->name[i].substr(0, 5) == "joint") {
+                joint_angles[msg->name[i]] = msg->position[i];
             }
         }
 
+        // 打印关节值
+        for (int i = 1; i <= 7; ++i) {
+            std::string joint_name = "joint_" + std::to_string(i);
+            RCLCPP_INFO(this->get_logger(), "Angle for %s: %f", joint_name.c_str(), joint_angles[joint_name]);
+        }
+
+        // 检查是否获取了所有关节角度
         if (joint_angles.size() == 7) {
             std::vector<DHParameter> dh_params = {
                 {0, M_PI, 0.0, 0.0},
-                {joint_angles[0], M_PI_2, 0.0, -(0.1564 + 0.1284)},
-                {joint_angles[1] + M_PI, M_PI_2, 0.0, -(0.0054 + 0.0064)},
-                {joint_angles[2] + M_PI, M_PI_2, 0.0, -(0.2104 + 0.2104)},
-                {joint_angles[3] + M_PI, M_PI_2, 0.0, -(0.0064 + 0.0064)},
-                {joint_angles[4] + M_PI, M_PI_2, 0.0, -(0.2084 + 0.1059)},
-                {joint_angles[5] + M_PI, M_PI_2, 0.0, 0.0},
-                {joint_angles[6] + M_PI, M_PI, 0.0, -(0.1059 + 0.0615)}
+                {joint_angles["joint_1"], M_PI_2, 0.0, -(0.1564 + 0.1284)},
+                {joint_angles["joint_2"] + M_PI, M_PI_2, 0.0, -(0.0054 + 0.0064)},
+                {joint_angles["joint_3"] + M_PI, M_PI_2, 0.0, -(0.2104 + 0.2104)},
+                {joint_angles["joint_4"] + M_PI, M_PI_2, 0.0, -(0.0064 + 0.0064)},
+                {joint_angles["joint_5"] + M_PI, M_PI_2, 0.0, -(0.2084 + 0.1059)},
+                {joint_angles["joint_6"] + M_PI, M_PI_2, 0.0, 0.0},
+                {joint_angles["joint_7"] + M_PI, M_PI, 0.0, -(0.1059 + 0.0615)}
             };
 
             Matrix4d T = forward_kinematics(dh_params);
